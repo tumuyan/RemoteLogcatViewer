@@ -14,7 +14,9 @@ LogcatRunner.getInstance().config(LogcatRunner.LogConfig.builder().write2File(tr
 LogcatRunner.getInstance().stop();
 ```
 
-然后在浏览器中打开<a href="http://8enet.github.io/RemoteLogcatViewer/" target="_blank">index.html</a> 输入对应局域网ip和端口`ws://ip:port/logcat` 即可(注:logcat别名可以修改)。
+然后打开任何一个websocket客户端都可以连接你的手机。比如安装Firefox扩展：
+https://addons.mozilla.org/en-US/firefox/addon/simple-websocket-client/?src=search 并打输入对应局域网ip和端口`ws://ip:port/logcat` (注:logcat别名可以修改)。
+
 > 因为一些安全原因,chrome禁止了部分不安全的请求地址`ws`,可以`允许加载不安全脚本`继续使用或者下载`index.html` 文件本地打开也可以。
 <img src="images/web_ui_1.jpg" width="40%" height="40%" />
 

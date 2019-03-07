@@ -2,12 +2,18 @@ package com.zzzmode.android.remotelogcatsample;
 
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.yanzhenjie.permission.Action;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.runtime.Permission;
 import com.zzzmode.android.remotelogcat.LogcatRunner;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -71,7 +77,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        startLog();
+
+        AndPermission.with(this)
+                .runtime()
+                .permission(Permission.Group.STORAGE)
+                .onGranted(new Action<List<String>>() {
+                    @Override
+                    public void onAction(List<String> permissions) {
+                        startLog();
+                    }
+                })
+                .onDenied(new Action<List<String>>() {
+                    @Override
+                    public void onAction(@NonNull List<String> permissions) {
+                        Toast.makeText(getApplicationContext(),"存储和分享Log需要存储权限，否则应用无法正常工作",Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                })
+                .start();
+
     }
 
     @Override

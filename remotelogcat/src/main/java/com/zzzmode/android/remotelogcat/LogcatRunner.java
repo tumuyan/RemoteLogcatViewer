@@ -110,6 +110,8 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
             }
         });
 
+
+
         mProcessOutputCallback = new ShellProcessThread.ProcessOutputCallback() {
 
             @Override
@@ -244,9 +246,11 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
         }
 
         private File getLogFile() {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss", Locale.getDefault());
             String s = sdf.format(new Date());
-            File f = new File(logConfig.logFileDir + "/logcat-" + s + ".log");
+            File f = new File(logConfig.logFileDir + "/logcat_" + s + ".log");
             if (!f.exists()) {
                 try {
                     f.getParentFile().mkdir();
