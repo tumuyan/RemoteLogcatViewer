@@ -5,6 +5,7 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yanzhenjie.permission.Action;
@@ -19,26 +20,17 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    
+    private boolean waitInit = true;
     private boolean logRunning = false;
+    private String wsLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        try {
-            LogcatRunner.getInstance()
-                    .config(LogcatRunner.LogConfig.builder()
-                            .setWsCanReceiveMsg(false)
-                            .write2File(true))
-                    .with(getApplicationContext())
-                    .start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
+    // 不是必须的。此方法用于 模拟输出；展示websocket实际链接
     private void startLog() {
         if (logRunning) {
             return;
@@ -64,16 +56,38 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (true) {
+                    if (!waitInit) {
+                        wsLink = LogcatRunner.getWebSocketLink();
+                        if (wsLink.length() > 2) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ((TextView) findViewById(R.id.textView)).setText("ws://" + wsLink);
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+        }).start();
+
     }
 
-    private static void test(){
+    private static void test() {
         try {
             throw new RuntimeException("----");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    // 授权并完成初始化
     @Override
     protected void onStart() {
         super.onStart();
@@ -84,13 +98,30 @@ public class MainActivity extends AppCompatActivity {
                 .onGranted(new Action<List<String>>() {
                     @Override
                     public void onAction(List<String> permissions) {
-                        startLog();
+                        if (waitInit) {
+                            try {
+                                LogcatRunner.getInstance()
+                                        .config(LogcatRunner.LogConfig.builder()
+                                                .setWsCanReceiveMsg(false)
+                                                .setLogFilePrefix("test")
+                                                .write2File(true))
+                                        .with(getApplicationContext())
+                                        .start();
+                                waitInit = false;
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            startLog();
+
+                        }
+
                     }
                 })
                 .onDenied(new Action<List<String>>() {
                     @Override
                     public void onAction(@NonNull List<String> permissions) {
-                        Toast.makeText(getApplicationContext(),"存储和分享Log需要存储权限，否则应用无法正常工作",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "存储和分享Log需要存储权限，否则应用无法正常工作", Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 })
@@ -108,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LogcatRunner.getInstance().stop();
-
+        // 完成销毁
+        LogcatRunner.Stop();
     }
 }

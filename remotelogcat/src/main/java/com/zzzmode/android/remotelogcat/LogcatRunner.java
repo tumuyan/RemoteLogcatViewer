@@ -28,7 +28,7 @@ import java.util.Locale;
 import java.util.Set;
 
 
-public class LogcatRunner implements IMontitor.OnNotifyObserver{
+public class LogcatRunner implements IMontitor.OnNotifyObserver {
     private static final String TAG = "LogcatRunner";
 
     private static final int VERSION = 1;
@@ -46,8 +46,8 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
     private LogConfig mLogConfig;
 
     private Context mContext;
-    private Set<IMontitor> mMontitors=new HashSet<>();
-    private Set<Class<? extends AbsMontitor>> mMontitorCls=new HashSet<>();
+    private Set<IMontitor> mMontitors = new HashSet<>();
+    private Set<Class<? extends AbsMontitor>> mMontitorCls = new HashSet<>();
 
     public static LogcatRunner getInstance() {
         if (sLogcatRunner == null) {
@@ -111,7 +111,6 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
         });
 
 
-
         mProcessOutputCallback = new ShellProcessThread.ProcessOutputCallback() {
 
             @Override
@@ -120,9 +119,10 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
             }
         };
     }
+
     @Override
     public void onChange(JSONObject jsonObject) {
-        if(jsonObject != null){
+        if (jsonObject != null) {
             sendText(jsonObject.toString());
         }
     }
@@ -137,27 +137,38 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
         return this;
     }
 
-    public LogcatRunner with(Context context){
-        if(context != null){
-            mContext=context.getApplicationContext();
+    public LogcatRunner with(Context context) {
+        if (context != null) {
+            mContext = context.getApplicationContext();
             //inner montitor
             mMontitorCls.add(MemoryMontitor.class);
         }
         return this;
     }
 
+    static public String getWebSocketLink() {
+        if (sLogcatRunner == null)
+            return "1";
+        if (getInstance().mWebSocketServer == null)
+            return "2";
+        if (getInstance().mWebSocketServer.isActive()){
+            return getInstance().mWebSocketServer.getWsLink();
+        }
+       return "3";
+    }
 
-    public LogcatRunner addMotitor(Class<? extends AbsMontitor>... cls){
+
+    public LogcatRunner addMotitor(Class<? extends AbsMontitor>... cls) {
         mMontitorCls.addAll(Arrays.asList(cls));
         return this;
     }
 
-    private void startMontitor(){
-        if(!mMontitorCls.isEmpty()){
-            for (Class<? extends AbsMontitor> cls:mMontitorCls){
+    private void startMontitor() {
+        if (!mMontitorCls.isEmpty()) {
+            for (Class<? extends AbsMontitor> cls : mMontitorCls) {
                 try {
-                    AbsMontitor montitor= cls.newInstance();
-                    montitor.attachServer(mContext,this);
+                    AbsMontitor montitor = cls.newInstance();
+                    montitor.attachServer(mContext, this);
                     montitor.start();
                     mMontitors.add(montitor);
                 } catch (Exception e) {
@@ -167,9 +178,9 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
         }
     }
 
-    private void stopMontitor(){
-        if(!mMontitors.isEmpty()){
-            for (IMontitor montitor:mMontitors){
+    private void stopMontitor() {
+        if (!mMontitors.isEmpty()) {
+            for (IMontitor montitor : mMontitors) {
                 montitor.stop();
             }
             mMontitors.clear();
@@ -184,7 +195,7 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
         startMontitor();
     }
 
-    private void sendText(String string){
+    private void sendText(String string) {
         if (mCurrWebSocket != null && string != null) {
             try {
                 mCurrWebSocket.send(string);
@@ -210,25 +221,32 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
 
     }
 
-    public void stop() {
+    public static void Stop() {
+        if (sLogcatRunner == null)
+            return;
+        getInstance().stop();
+    }
+
+    private void stop() {
+
         try {
             stopMontitor();
 
             if (mWebSocketServer != null) {
                 mWebSocketServer.stop();
+                Log.w("this.stop", "mWebSocketServer");
             }
 
             if (mLogcatThread != null && mLogcatThread.isAlive()) {
                 mLogcatThread.stopReader();
                 mLogcatThread.setOutputCallback(null);
                 mLogcatThread.interrupt();
+                Log.w("this.stop", "mLogcatThread");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
 
 
     private static class ShellProcessThread extends Thread {
@@ -250,7 +268,7 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss", Locale.getDefault());
             String s = sdf.format(new Date());
-            File f = new File(logConfig.logFileDir + "/logcat_" + s + ".log");
+            File f = new File(logConfig.logFileDir + "/logcat_" + logConfig.tag + s + ".log");
             if (!f.exists()) {
                 try {
                     f.getParentFile().mkdir();
@@ -392,7 +410,8 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
         private String logFileDir = Environment.getExternalStorageDirectory() + "/log";
         private String wsPrefix = "/logcat";
         private String logcatCMD = "logcat -v time";
-        private boolean wsCanReceiveMsg=false;
+        private boolean wsCanReceiveMsg = false;
+        private String tag = "";
 
         public static LogConfig builder() {
             return new LogConfig();
@@ -413,13 +432,19 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver{
             return this;
         }
 
+        public LogConfig setLogFilePrefix(String tag) {
+            if (tag.length() > 0)
+                this.tag = tag.replaceFirst("_?$", "_");
+            return this;
+        }
+
         public LogConfig setWebsocketPrefix(String prefix) {
             this.wsPrefix = prefix;
             return this;
         }
 
-        public LogConfig setWsCanReceiveMsg(boolean b){
-            this.wsCanReceiveMsg=b;
+        public LogConfig setWsCanReceiveMsg(boolean b) {
+            this.wsCanReceiveMsg = b;
             return this;
         }
     }

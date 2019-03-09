@@ -44,6 +44,9 @@ public class WebSocketServer {
         this.mCallback = mCallback;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
 
     public void start(){
         if(isActive){
@@ -65,15 +68,21 @@ public class WebSocketServer {
 
             final InetAddress hostLANAddress = NetworkUtils.getLocalHostLANAddress();
             if(hostLANAddress != null){
-                Log.e("WebSocketServer", "Server start success! Connection IP : "+hostLANAddress.getHostAddress()+":"+port);
+//                Log.e("WebSocketServer", "Server start success! Connection IP : "+hostLANAddress.getHostAddress()+":"+port+"/logcat");
+                Log.e("WebSocketServer", "Server start success! Connection IP : "+hostLANAddress.getHostAddress()+":"+port+mWebSocketPrefix);
+                wsLink=hostLANAddress.getHostAddress()+":"+port+mWebSocketPrefix;
             }else {
                 Log.e("WebSocketServer", "Server start success! But unknow local ip address !");
+                wsLink="error";
             }
 
             isActive=true;
             while (isActive){
                 handleSocket(mServerSocket.accept());
             }
+
+            Log.e("WebSocketServer", "Exit innerStart()");
+
         } catch (Exception e) {
             if(mCallback != null){
                 mCallback.onClosed();
@@ -83,6 +92,11 @@ public class WebSocketServer {
         }
     }
 
+    private String wsLink="";
+
+    public String getWsLink() {
+        return wsLink;
+    }
 
     public void stop(){
         isActive=false;
@@ -111,6 +125,7 @@ public class WebSocketServer {
     }
 
     private void handleSocket(final Socket socket) {
+//        Log.i("ServerSocket.handle","isActive"+isActive);
         if(!isActive){
             return;
         }
@@ -120,6 +135,7 @@ public class WebSocketServer {
             boolean isWebsocket=false;
             final Map<String, String> headerMap=parseHeader(socket.getInputStream());
             String s = headerMap.get(WebSocket.REQUEST_LINE);
+//            Log.i("ServerSocket.handle","REQUEST_LINE:"+s);
             if(s!= null && s.startsWith("GET /")){
                 isHttp=true;
                 isWebsocket=s.startsWith("GET "+mWebSocketPrefix);
@@ -145,7 +161,7 @@ public class WebSocketServer {
                 handled=true;
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }finally {
             try {

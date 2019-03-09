@@ -1,23 +1,52 @@
 # RemoteLogcatViewer
-在浏览器上远程查看logcat日志。
+[![](https://jitpack.io/v/tumuyan/RemoteLogcatViewer.svg)](https://jitpack.io/#tumuyan/RemoteLogcatViewer)
+在浏览器上远程查看logcat日志，或保存logcat日志到外置存储。
+Fork自[8enet/RemoteLogcatViewer](https://github.com/8enet/RemoteLogcatViewer)
+，并没有大的修改，主要是为方便自用做了微调，然后加了依赖链接。
 
 ## 用法
+引入依赖
 ```gradle
 compile project(':remotelogcat')
+```
+或者
+```gradle
+//Add it in your root build.gradle at the end of repositories:
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+//Add the dependency
+dependencies {
+        implementation 'com.github.tumuyan:RemoteLogcatViewer:Tag'
+}
 ```
 
 ```java
 //start
-LogcatRunner.getInstance().config(LogcatRunner.LogConfig.builder().write2File(true)).start();
+LogcatRunner.getInstance()
+        .config(LogcatRunner.LogConfig.builder()
+                .setWsCanReceiveMsg(false)
+                .setLogFilePrefix("tag")
+                .write2File(true))
+        .with(getApplicationContext())
+        .start();
+...
+//获取ws链接地址
+LogcatRunner.getWebSocketLink();
 ...
 //stop
-LogcatRunner.getInstance().stop();
+LogcatRunner.Stop();
 ```
+
+
 
 然后打开任何一个websocket客户端都可以连接你的手机。比如安装Firefox扩展：
 https://addons.mozilla.org/en-US/firefox/addon/simple-websocket-client/?src=search 并打输入对应局域网ip和端口`ws://ip:port/logcat` (注:logcat别名可以修改)。
 
-> 因为一些安全原因,chrome禁止了部分不安全的请求地址`ws`,可以`允许加载不安全脚本`继续使用或者下载`index.html` 文件本地打开也可以。
+> 因为一些安全原因,chrome禁止了部分不安全的请求地址`ws`,可以`允许加载不安全脚本`继续使用或者下载[index.html](https://raw.githubusercontent.com/tumuyan/RemoteLogcatViewer/master/index.html) 文件到本地并打开。
 <img src="images/web_ui_1.jpg" width="40%" height="40%" />
 
 如果不希望修改现有项目，可以新建一个其他的项目依赖本库，然后通过配置相同的 `android:sharedUserId=""` 和签名相同，
