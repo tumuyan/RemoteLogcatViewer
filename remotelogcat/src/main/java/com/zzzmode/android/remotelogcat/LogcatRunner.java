@@ -146,6 +146,14 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver {
         return this;
     }
 
+    private LogToaster mLogToaster;
+
+    public LogToaster getLogToaster() {
+        if(null == mLogToaster)
+            mLogToaster=LogToaster.getInstance(mContext);
+        return mLogToaster;
+    }
+
     static public String getWebSocketLink() {
         if (sLogcatRunner == null)
             return "1";
@@ -401,7 +409,6 @@ public class LogcatRunner implements IMontitor.OnNotifyObserver {
             void onReaderLine(String line);
         }
     }
-
 
     public static class LogConfig {
 

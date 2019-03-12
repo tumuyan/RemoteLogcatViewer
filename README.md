@@ -1,6 +1,6 @@
 # RemoteLogcatViewer
 [![](https://jitpack.io/v/tumuyan/RemoteLogcatViewer.svg)](https://jitpack.io/#tumuyan/RemoteLogcatViewer)
-在浏览器上远程查看logcat日志，或保存logcat日志到外置存储。
+在浏览器上远程查看logcat日志，保存logcat日志到外置存储，使用toast消息展示重要日志。
 Fork自[8enet/RemoteLogcatViewer](https://github.com/8enet/RemoteLogcatViewer)
 ，并没有大的修改，主要是为方便自用做了微调，然后加了依赖链接。
 
@@ -60,9 +60,7 @@ https://addons.mozilla.org/en-US/firefox/addon/simple-websocket-client/?src=sear
 某些Android设备没有调试接口，比如电视或者各种盒子终端，没法连接usb调试当然也不能查看logcat日志了，这个项目是在浏览器上远程显示和保存logcat输出，帮助调试开发使用。
 
 ## 功能
-目前可以完整的查看、过滤、保存logcat信息。
-支持日志文件写入、下载。  
-后期会加入shell支持。
+完整的查看、过滤、保存logcat信息。
 
 ## License
 Apache License 2.0

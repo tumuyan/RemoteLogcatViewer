@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.yanzhenjie.permission.Action;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
+import com.zzzmode.android.remotelogcat.LogToaster;
 import com.zzzmode.android.remotelogcat.LogcatRunner;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean waitInit = true;
     private boolean logRunning = false;
     private String wsLink;
+    private LogToaster mLogToaster;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +41,24 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Random random = new Random();
                 int i = 0;
                 while (logRunning) {
-                    if (random.nextBoolean()) {
-                        Log.e("testlog", "run --> " + i);
-                    } else {
-                        Log.w("testlog", "run --> " + i);
+                    int j=(int)(Math.abs(4*Math.random()))+1;
+                    Log.i("debug","i="+i+" j="+j);
+                    if(null==mLogToaster){
+                        // 生成log信息
+                        if (j>2) {
+                            Log.e("testlog", "run --> " + i);
+                        } else {
+                            Log.w("testlog", "run --> " + i);
+                        }
 
+                    }else {
+                        // 生成toast信息
+                      try{  mLogToaster.log("LogToaster --> " + i,"level "+j,j);}catch (Exception e){e.printStackTrace();}
                     }
-//                    test();test();test();test();test();test();test();
-//                    test();test();test();test();test();test();test();
-                    SystemClock.sleep(random.nextInt(5000) + 100);
+
+                    SystemClock.sleep(j*1000 );
                     i++;
                 }
             }
@@ -103,11 +111,14 @@ public class MainActivity extends AppCompatActivity {
                                 LogcatRunner.getInstance()
                                         .config(LogcatRunner.LogConfig.builder()
                                                 .setWsCanReceiveMsg(false)
-                                                .setLogFilePrefix("test")
+                                                .setLogFilePrefix("LogcatSample")
                                                 .write2File(true))
                                         .with(getApplicationContext())
                                         .start();
                                 waitInit = false;
+
+                                mLogToaster=LogcatRunner.getInstance().getLogToaster();
+                                mLogToaster.set(true,true,5000,3,"toast test");
 
                             } catch (IOException e) {
                                 e.printStackTrace();
